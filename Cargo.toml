@@ -1,0 +1,25 @@
+[package]
+name = "tongfang-touchpad-toggle"
+authors = ["Bogdan Mircea <mirceapetrebogdan@gmail.com>"]
+description = "Binary that toggles the touchpad switch on TongFang GM7PX9N laptops"
+license = "MIT"
+version = "0.1.0"
+edition = "2021"
+
+[package.metadata.deb]
+assets = [
+    [
+        "target/release/tongfang-touchpad-toggle",
+        "usr/bin/",
+        "4755",
+    ],
+    [
+        "rules/99-tongfang-touchpad-toggle.rules",
+        "lib/udev/rules.d/",
+        "644",
+    ],
+]
+
+[dependencies]
+udev = "0.8"
+nix = { version = "0.27", features = ["ioctl"] }
