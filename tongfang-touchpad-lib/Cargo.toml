@@ -1,0 +1,12 @@
+[package]
+name = "tongfang-touchpad-lib"
+authors = ["Bogdan Mircea <mirceapetrebogdan@gmail.com>"]
+description = "Library for controlling the touchpad on TongFang GM7PX9N laptops"
+license = "MIT"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+udev = "0.8"
+nix = { version = "0.27", features = ["ioctl"] }
+thiserror = "1.0"
