@@ -114,6 +114,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "tongfang-touchpad-cinnamon"
+version = "0.1.0"
+
+[[package]]
 name = "tongfang-touchpad-lib"
 version = "0.1.0"
 dependencies = [

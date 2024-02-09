@@ -1,7 +1,7 @@
 [workspace]
 resolver = "2"
 
-members = ["tongfang-touchpad-lib", "tongfang-touchpad-toggle"]
+members = [ "tongfang-touchpad-cinnamon","tongfang-touchpad-lib", "tongfang-touchpad-toggle"]
 
 [workspace.lints.clippy]
 all = "warn"

@@ -19,9 +19,16 @@ const HID_IOC_G_FEATURE: u8 = 7;
 ioctl_readwrite_buf!(_touchpad_state, HID_IOC_MAGIC, HID_IOC_G_FEATURE, u8);
 ioctl_readwrite_buf!(_touchpad_set_state, HID_IOC_MAGIC, HID_IOC_S_FEATURE, u8);
 
+#[derive(Debug)]
 pub struct Touchpad(File);
 
 impl Touchpad {
+    /// Creates a new [`Touchpad`] handle.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the touchpad device/device node
+    /// could not be identified through device enumeration.
     pub fn new() -> TPadResult<Self> {
         let mut enumerator = Enumerator::new()?;
         enumerator.match_subsystem(SUBSYSTEM)?;
@@ -38,6 +45,12 @@ impl Touchpad {
         Ok(Self(file))
     }
 
+    /// Returns the [`TouchpadState`].
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if retrieving the state failed
+    /// or the state is unknown.
     pub fn touchpad_state(&mut self) -> TPadResult<TouchpadState> {
         let fd = self.0.as_raw_fd();
         let mut data = [TOUCHPAD_ENABLED_FEATURE, 0];
@@ -45,6 +58,11 @@ impl Touchpad {
         data[1].try_into().map_err(From::from)
     }
 
+    /// Sets the [`TouchpadState`].
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if setting the state failed.
     pub fn set_touchpad_state(&mut self, state: TouchpadState) -> TPadResult<()> {
         let fd = self.0.as_raw_fd();
         let mut data = [TOUCHPAD_ENABLED_FEATURE, state as u8];

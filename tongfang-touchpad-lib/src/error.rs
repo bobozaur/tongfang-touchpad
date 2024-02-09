@@ -6,7 +6,7 @@ use udev::Device;
 
 use crate::TOUCHPAD_SYSNAME;
 
-pub type TPadResult<T> = std::result::Result<T, TPadError>;
+pub type TPadResult<T> = Result<T, TPadError>;
 
 #[derive(Debug, ThisError)]
 pub enum TPadError {

@@ -22,3 +22,6 @@ assets = [
 
 [dependencies]
 tongfang-touchpad-lib = { path = "../tongfang-touchpad-lib" }
+
+[lints]
+workspace = true

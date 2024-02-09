@@ -5,9 +5,9 @@ fn main() -> TPadResult<()> {
     let state = tpad.touchpad_state()?;
     let new_state = match state {
         TouchpadState::Disabled => TouchpadState::Enabled,
-        TouchpadState::ButtonsEnabled => TouchpadState::Disabled,
-        TouchpadState::SurfaceEnabled => TouchpadState::Disabled,
-        TouchpadState::Enabled => TouchpadState::Disabled,
+        TouchpadState::ButtonsEnabled | TouchpadState::SurfaceEnabled | TouchpadState::Enabled => {
+            TouchpadState::Disabled
+        }
     };
 
     tpad.set_touchpad_state(new_state)
