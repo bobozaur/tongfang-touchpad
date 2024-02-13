@@ -1,0 +1,4 @@
+[Desktop Entry]
+Name=Tongfang Touchpad Daemon
+Exec=tongfang-touchpad-daemon
+Type=Application

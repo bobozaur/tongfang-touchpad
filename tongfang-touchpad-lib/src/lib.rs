@@ -8,7 +8,7 @@ use nix::ioctl_readwrite_buf;
 pub use state::TouchpadState;
 use udev::{Device, Enumerator};
 
-const SUBSYSTEM: &str = "hidraw";
+const HIDRAW_SUBSYSTEM: &str = "hidraw";
 const TOUCHPAD_SYSNAME: &str = "i2c-UNIW0001:00";
 const HID_IOC_MAGIC: u8 = b'H';
 
@@ -31,7 +31,7 @@ impl Touchpad {
     /// could not be identified through device enumeration.
     pub fn new() -> TPadResult<Self> {
         let mut enumerator = Enumerator::new()?;
-        enumerator.match_subsystem(SUBSYSTEM)?;
+        enumerator.match_subsystem(HIDRAW_SUBSYSTEM)?;
 
         let Some(device) = enumerator.scan_devices()?.find(Self::device_matches) else {
             return Err(TPadError::NoDevice);
@@ -70,14 +70,14 @@ impl Touchpad {
         Ok(())
     }
 
-    fn path_component_matches(comp: Component<'_>) -> bool {
-        comp.as_os_str() == TOUCHPAD_SYSNAME
-    }
-
-    fn device_matches(device: &Device) -> bool {
+    pub fn device_matches(device: &Device) -> bool {
         device
             .syspath()
             .components()
             .any(Self::path_component_matches)
+    }
+
+    fn path_component_matches(comp: Component<'_>) -> bool {
+        comp.as_os_str() == TOUCHPAD_SYSNAME
     }
 }

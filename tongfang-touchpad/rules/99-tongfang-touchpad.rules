@@ -1,0 +1,5 @@
+KERNELS=="i2c-UNIW0001:00", SUBSYSTEMS=="i2c", DRIVERS=="i2c_hid", ATTRS{name}=="UNIW0001:00", SUBSYSTEM=="hidraw", MODE="0666"
+KERNELS=="i2c-UNIW0001:00", SUBSYSTEMS=="i2c", DRIVERS=="i2c_hid_acpi", ATTRS{name}=="UNIW0001:00", SUBSYSTEM=="hidraw", MODE="0666"
+
+SUBSYSTEM=="input", KERNEL=="mouse[0-9]*", ACTION=="add",    RUN+="/usr/bin/tongfang-touchpad off"
+SUBSYSTEM=="input", KERNEL=="mouse[0-9]*", ACTION=="remove", RUN+="/usr/bin/tongfang-touchpad on"

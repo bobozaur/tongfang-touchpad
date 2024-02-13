@@ -1,0 +1,41 @@
+[package]
+name = "tongfang-touchpad-daemon"
+authors = ["Bogdan Mircea <mirceapetrebogdan@gmail.com>"]
+description = "Daemon that handles the state consistency of linux DE touchpad on/off settings, the systemd sleep states, and the touchpad LED switch on TongFang GM7PX9N laptops."
+license = "MIT"
+version = "0.1.0"
+edition = "2021"
+
+[package.metadata.deb]
+maintainer-scripts = "debian/"
+systemd-units = { enable = false }
+assets = [
+    [
+        "target/release/tongfang-touchpad-daemon",
+        "usr/bin/",
+        "755",
+    ],
+    [
+        "tongfang-touchpad-daemon.desktop",
+        "usr/share/gdm/greeter/autostart/",
+        "644",
+    ],
+    [
+        "tongfang-touchpad-daemon.desktop",
+        "etc/xdg/autostart/",
+        "644",
+    ],
+]
+
+[dependencies]
+tongfang-touchpad-lib = { path = "../tongfang-touchpad-lib" }
+
+udev = { workspace = true }
+thiserror = { workspace = true }
+
+gio = "0.19"
+log = "0.4"
+env_logger = "0.11"
+
+[lints]
+workspace = true
