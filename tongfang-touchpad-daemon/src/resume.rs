@@ -68,7 +68,7 @@ impl TouchpadResumer {
 
     fn load_power_state(touchpad: &mut Touchpad, state_store: &AtomicU8) -> DaemonResult<()> {
         let state = state_store.load(Ordering::Acquire).try_into()?;
-        println!("restoring touchpad state after wake: {state:?}");
+        log::info!("restoring touchpad state after wake: {state:?}");
         touchpad.set_touchpad_state(state).map_err(From::from)
     }
 

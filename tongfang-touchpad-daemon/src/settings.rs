@@ -19,18 +19,24 @@ pub struct TouchpadSettings(Settings);
 
 impl TouchpadSettings {
     #[allow(clippy::missing_panics_doc)]
-    pub fn new(touchpad: Arc<Mutex<Touchpad>>) -> Self {
+    #[allow(clippy::missing_errors_doc)]
+    pub fn new(touchpad: Arc<Mutex<Touchpad>>) -> DaemonResult<Self> {
         let settings = Settings::new(TOUCHPAD_SETTINGS_SCHEMA_ID);
+        let dbus_value = settings.string(SEND_EVENTS_SIGNAL);
+        {
+            let mut touchpad = touchpad.lock().unwrap();
+            Self::act_on_changed_settings(&mut touchpad, dbus_value)?;
+        }
 
         settings.connect_changed(Some(SEND_EVENTS_SIGNAL), move |s, e| {
             let mut touchpad = touchpad.lock().unwrap();
-            let value = s.string(e);
-            if let Err(e) = Self::act_on_changed_settings(&mut touchpad, value) {
+            let dbus_value = s.string(e);
+            if let Err(e) = Self::act_on_changed_settings(&mut touchpad, dbus_value) {
                 log::error!("error handling touchpad settings changed signal {e}");
             }
         });
 
-        Self(settings)
+        Ok(Self(settings))
     }
 
     fn act_on_changed_settings(touchpad: &mut Touchpad, dbus_value: GString) -> DaemonResult<()> {
@@ -55,6 +61,7 @@ impl TouchpadSettings {
         let mut enumerator = Enumerator::new()?;
         enumerator.match_subsystem(INPUT_SUBSYSTEM)?;
         let out = enumerator.scan_devices()?.any(Self::is_different_mouse);
+        log::info!("external mouse connected: {out}");
         Ok(out)
     }
 
