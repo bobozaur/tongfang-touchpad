@@ -14,62 +14,71 @@ const SEND_EVENTS_SIGNAL: &str = "send-events";
 const MOUSE_DEV_PREFIX: &str = "mouse";
 const INPUT_SUBSYSTEM: &str = "input";
 
-#[allow(clippy::missing_panics_doc)]
-pub fn setup_touchpad_settings_listener(touchpad: Arc<Mutex<Touchpad>>) {
-    Settings::new(TOUCHPAD_SETTINGS_SCHEMA_ID).connect_changed(
-        Some(SEND_EVENTS_SIGNAL),
-        move |s, e| {
+#[derive(Debug)]
+pub struct TouchpadSettings(Settings);
+
+impl TouchpadSettings {
+    #[allow(clippy::missing_panics_doc)]
+    pub fn new(touchpad: Arc<Mutex<Touchpad>>) -> Self {
+        let settings = Settings::new(TOUCHPAD_SETTINGS_SCHEMA_ID);
+
+        settings.connect_changed(Some(SEND_EVENTS_SIGNAL), move |s, e| {
             let mut touchpad = touchpad.lock().unwrap();
             let value = s.string(e);
-            if let Err(e) = act_on_changed_settings(&mut touchpad, value) {
+            if let Err(e) = Self::act_on_changed_settings(&mut touchpad, value) {
                 log::error!("error handling touchpad settings changed signal {e}");
             }
-        },
-    );
-}
+        });
 
-fn act_on_changed_settings(touchpad: &mut Touchpad, dbus_value: GString) -> DaemonResult<()> {
-    match dbus_value.try_into()? {
-        TouchpadDbusState::Enabled => touchpad.set_touchpad_state(TouchpadState::Enabled)?,
-        TouchpadDbusState::Disabled => touchpad.set_touchpad_state(TouchpadState::Disabled)?,
-        TouchpadDbusState::DisabledOnExternalMouse if is_mouse_connected()? => {
-            touchpad.set_touchpad_state(TouchpadState::Disabled)?;
-        }
-        TouchpadDbusState::DisabledOnExternalMouse => {
-            touchpad.set_touchpad_state(TouchpadState::Enabled)?;
-        }
+        Self(settings)
     }
 
-    Ok(())
-}
+    fn act_on_changed_settings(touchpad: &mut Touchpad, dbus_value: GString) -> DaemonResult<()> {
+        let dbus_state = dbus_value.try_into()?;
+        log::info!("handling touchpad DBus state: {dbus_state:?}");
 
-fn is_mouse_connected() -> DaemonResult<bool> {
-    let mut enumerator = Enumerator::new()?;
-    enumerator.match_subsystem(INPUT_SUBSYSTEM)?;
-    let out = enumerator.scan_devices()?.any(is_different_mouse);
-    Ok(out)
-}
+        let state = match dbus_state {
+            TouchpadDbusState::Disabled => TouchpadState::Disabled,
+            TouchpadDbusState::DisabledOnExternalMouse if Self::is_mouse_connected()? => {
+                TouchpadState::Disabled
+            }
+            TouchpadDbusState::DisabledOnExternalMouse | TouchpadDbusState::Enabled => {
+                TouchpadState::Enabled
+            }
+        };
 
-#[allow(clippy::needless_pass_by_value)]
-fn is_different_mouse(device: Device) -> bool {
-    let Some(devnode) = device.devnode() else {
-        return false;
-    };
+        touchpad.set_touchpad_state(state)?;
+        Ok(())
+    }
 
-    let is_mouse = devnode
-        .components()
-        .last()
-        .map(is_mouse_device)
-        .unwrap_or_default();
+    fn is_mouse_connected() -> DaemonResult<bool> {
+        let mut enumerator = Enumerator::new()?;
+        enumerator.match_subsystem(INPUT_SUBSYSTEM)?;
+        let out = enumerator.scan_devices()?.any(Self::is_different_mouse);
+        Ok(out)
+    }
 
-    is_mouse && !Touchpad::device_matches(&device)
-}
+    #[allow(clippy::needless_pass_by_value)]
+    fn is_different_mouse(device: Device) -> bool {
+        let Some(devnode) = device.devnode() else {
+            return false;
+        };
 
-fn is_mouse_device(cmp: Component<'_>) -> bool {
-    cmp.as_os_str()
-        .to_str()
-        .map(|s| s.starts_with(MOUSE_DEV_PREFIX))
-        .unwrap_or_default()
+        let is_mouse = devnode
+            .components()
+            .last()
+            .map(Self::is_mouse_device)
+            .unwrap_or_default();
+
+        is_mouse && !Touchpad::device_matches(&device)
+    }
+
+    fn is_mouse_device(cmp: Component<'_>) -> bool {
+        cmp.as_os_str()
+            .to_str()
+            .map(|s| s.starts_with(MOUSE_DEV_PREFIX))
+            .unwrap_or_default()
+    }
 }
 
 #[derive(Copy, Clone, Debug)]

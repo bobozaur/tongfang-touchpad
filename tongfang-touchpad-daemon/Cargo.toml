@@ -7,8 +7,6 @@ version = "0.1.0"
 edition = "2021"
 
 [package.metadata.deb]
-maintainer-scripts = "debian/"
-systemd-units = { enable = false }
 assets = [
     [
         "target/release/tongfang-touchpad-daemon",
